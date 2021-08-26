@@ -18,8 +18,6 @@ package test
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -54,39 +52,20 @@ func testGet(t *testing.T, proxyClient *http.Client, reqURL string) {
 	body := []byte(r.(string))
 	if Assert.Equal(len(body), len(proxyBody)) {
 		checkLen := fs.Min(100, len(body))
-		if !Assert.Equal(body[:checkLen], proxyBody[:checkLen]) {
-			t.Fatalf("checkLen: %d", checkLen)
-		}
+		Assert.Equal(body[:checkLen], proxyBody[:checkLen])
 		Assert.Equal(body[len(body)-checkLen:], proxyBody[len(body)-checkLen:])
 	}
 }
 
-var (
-	transportMap = &sync.Map{}
-	rootCAs      *x509.CertPool
-	lock         = &sync.Mutex{}
-)
+var transportMap = &sync.Map{}
 
 func getClient(t *testing.T, proxyAddress string) *http.Client {
-	lock.Lock()
-	if rootCAs == nil {
-		rootCAs = x509.NewCertPool()
-		CACert, err := ioutil.ReadFile("/tmp/p2pcert.pem")
-		if err != nil {
-			t.Fatalf("Read CA cert fail! %s", err)
-		}
-		rootCAs.AppendCertsFromPEM(CACert)
-	}
-	lock.Unlock()
 	proxyURL, err := url.Parse(fmt.Sprintf("http://%s", proxyAddress))
 	if err != nil {
 		t.Fatalf("Proxy url parse fail! %s", err)
 	}
 	proxyTransport, _ := transportMap.LoadOrStore(proxyAddress, &http.Transport{
-		Proxy: http.ProxyURL(proxyURL),
-		TLSClientConfig: &tls.Config{
-			RootCAs: rootCAs,
-		},
+		Proxy:           http.ProxyURL(proxyURL),
 		MaxConnsPerHost: 100,
 	})
 	return &http.Client{

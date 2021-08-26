@@ -253,7 +253,6 @@ func configureCA(t *testing.T) {
 	} else {
 		t.Fatalf("Unknown system!")
 	}
-
 }
 
 func configureDocker(t *testing.T, proxyAddress string) {
@@ -275,6 +274,23 @@ func configureDocker(t *testing.T, proxyAddress string) {
 	if err := file.Close(); err != nil {
 		t.Fatalf("Close file %s fail! %s", fn, err)
 	}
+	// mirror
+	//s = "{\"registry-mirrors\": [\"https://q5oyqv4y.mirror.aliyuncs.com\"]}"
+	//dir = "/etc/docker"
+	//fn = "/etc/docker/daemon.json"
+	//if err := os.MkdirAll(dir, 0644); err != nil {
+	//	t.Fatalf("Mkdir %s fail! %s", dir, err)
+	//}
+	//file, err = os.OpenFile(fn, os.O_CREATE|os.O_RDWR, 0644)
+	//if err != nil {
+	//	t.Fatalf("Open file %s fail! %s", fn, err)
+	//}
+	//if _, err := file.WriteString(s); err != nil {
+	//	t.Fatalf("Write file %s fail! %s", fn, err)
+	//}
+	//if err := file.Close(); err != nil {
+	//	t.Fatalf("Close file %s fail! %s", fn, err)
+	//}
 	// restart
 	executeCmd(true, "systemctl", "daemon-reload")
 	executeCmd(true, "systemctl", "restart", "docker")
